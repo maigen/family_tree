@@ -14,24 +14,29 @@ def menu
   gets.chomp
 
   loop do
-    puts 'Press a to add a family member. Press l to list out the family members.'
+    puts "\n\nPress a to add a family member. Press l to list out the family members."
     puts 'Press m to add who someone is married to. Press s to see who someone is married to.'
-    puts 'Press p to establish the parents of a person. Press c to see the parents of any child.'
+    puts 'Press e to establish the parents of a person. Press p to see the parents of any child.'
+    puts 'Press c to list all of the children for any parent. Press g to see the grandparents of a child.'
     puts 'Press x to exit.'
     choice = gets.chomp
 
     case choice
     when 'a'
       add_person
+    when 'g'
+      find_grandparents
     when 'l'
       list
-    when 'c'
+    when 'p'
       list_parents
     when 'm'
       add_marriage
     when 's'
       show_marriage
-    when 'p'
+    when 'c'
+      show_children
+    when 'e'
       add_parents
     when 'x'
       exit
@@ -58,20 +63,45 @@ def add_parents
   puts "#{child.name} now has #{parent1.name} and #{parent2.name} as parents."
 end
 
+def find_grandparents
+  list
+  puts "Enter the number of the child and I'll show you their grandparents."
+  person = Person.find(gets.chomp.to_i)
+  puts "#{person.name}'s grandparents are: "
+  grandparents = person.find_grandparents
+  if (grandparents[0] != nil && grandparents[1] != nil && grandparents[2] != nil && grandparents[3] != nil)
+    grandparents.each do |grandparent|
+      puts "#{grandparent.name}"
+    end
+  else
+    puts "aww, this person has no grandparents."
+  end
+end
+
 def list_parents
   list
   puts "Enter the number of the child and I'll show you who their parents are."
-  person = Person.find(gets.chomp.to_i)
-  parent1 = Person.find(person.parent_id_1)
-  parent2 = Person.find(person.parent_id_2)
-  puts "#{person.name} is a child of #{parent1.name} and #{parent2.name}\n\n\n"
+  person = Person.find(gets.chomp)
+  parents = person.find_parents
+  puts "#{person.name}'s parents are: "
+  if parents.first == nil && parents.last ==  nil
+    puts "#{person.name} has no parents. That poor little orphan."
+  else
+    parents.each do |parent|
+      if parent != nil
+        puts " #{parent.name}"
+      end
+    end
+  end
+  puts "\n\n"
 end
 
 def show_children
   list
   puts "Enter the number of a person and I'll show you who their children are."
   person = Person.find(gets.chomp)
-  puts person.name + " is the parent of: " +
+  puts "#{person.name} has begat the following: \n"
+  puts person.find_children
 end
 
 def add_marriage
@@ -87,7 +117,7 @@ end
 def list
   system "clear"
   puts 'Here are all your relatives:'
-  people = Person.all
+  people = Person.all.sort
   people.each do |person|
     puts person.id.to_s + " " + person.name
   end
